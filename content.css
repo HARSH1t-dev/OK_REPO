@@ -1,0 +1,229 @@
+/*
+ * content.css — Phase 4. Every selector is prefixed .ghx- / [data-ghx] so nothing leaks into GitHub's own styles.
+ * Colours come from GitHub's Primer CSS variables (new --fgColor-* names first, older --color-* second,
+ * hard-coded light values last), so light, dark and high-contrast themes work without extra rules.
+ */
+[data-ghx] {
+  --ghx-fg: var(--fgColor-default, var(--color-fg-default, #1f2328));
+  --ghx-muted: var(--fgColor-muted, var(--color-fg-muted, #59636e));
+  --ghx-bg: var(--bgColor-default, var(--color-canvas-default, #ffffff));
+  --ghx-subtle: var(--bgColor-muted, var(--color-canvas-subtle, #f6f8fa));
+  --ghx-border: var(--borderColor-default, var(--color-border-default, #d1d9e0));
+  --ghx-accent: var(--fgColor-accent, var(--color-accent-fg, #0969da));
+  --ghx-green: var(--fgColor-success, var(--color-success-fg, #1a7f37));
+  --ghx-green-bg: var(--bgColor-success-muted, var(--color-success-subtle, #dafbe1));
+  --ghx-green-border: var(--borderColor-success-muted, var(--color-success-muted, #aceebb));
+  --ghx-yellow: var(--fgColor-attention, var(--color-attention-fg, #9a6700));
+  --ghx-yellow-bg: var(--bgColor-attention-muted, var(--color-attention-subtle, #fff8c5));
+  --ghx-yellow-border: var(--borderColor-attention-muted, var(--color-attention-muted, #eac54f));
+  --ghx-red: var(--fgColor-danger, var(--color-danger-fg, #d1242f));
+  --ghx-red-bg: var(--bgColor-danger-muted, var(--color-danger-subtle, #ffebe9));
+  --ghx-red-border: var(--borderColor-danger-muted, var(--color-danger-muted, #ffcecb));
+  --ghx-radius: var(--borderRadius-medium, 6px);
+  box-sizing: border-box;
+}
+[data-ghx] *,
+[data-ghx] *::before,
+[data-ghx] *::after {
+  box-sizing: border-box;
+}
+
+/* ───────── difficulty badge (title, card, dialog, list rows) ───────── */
+.ghx-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 2em;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.ghx-badge.ghx-sm { padding: 0 6px; font-size: 11px; line-height: 18px; }
+.ghx-easy { color: var(--ghx-green); background: var(--ghx-green-bg); border-color: var(--ghx-green-border); }
+.ghx-moderate { color: var(--ghx-yellow); background: var(--ghx-yellow-bg); border-color: var(--ghx-yellow-border); }
+.ghx-hard { color: var(--ghx-red); background: var(--ghx-red-bg); border-color: var(--ghx-red-border); }
+
+.ghx-titlebadges { display: inline-flex; gap: 6px; margin-left: 10px; vertical-align: middle; font-size: 14px; font-weight: 400; }
+
+/* maintainer pick */
+.ghx-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--ghx-yellow-border);
+  border-radius: 2em;
+  color: var(--ghx-yellow);
+  background: var(--ghx-yellow-bg);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.ghx-pick.ghx-sm { padding: 0 6px; font-size: 11px; line-height: 18px; }
+
+/* ───────── card (sidebar, or floating when no sidebar is found) ───────── */
+.ghx-card {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--ghx-border);
+  border-radius: var(--ghx-radius);
+  background: var(--ghx-bg);
+  color: var(--ghx-fg);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ghx-card.ghx-float {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 90;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: 70vh;
+  margin: 0;
+  overflow: auto;
+  box-shadow: var(--shadow-floating-large, 0 8px 24px rgba(140, 149, 159, 0.25));
+}
+.ghx-card.ghx-collapsed .ghx-body { display: none; }
+.ghx-collapse { display: none; }
+.ghx-float .ghx-collapse { display: inline-flex; }
+.ghx-head { display: flex; align-items: center; gap: 8px; }
+.ghx-title { flex: 1; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ghx-muted); }
+.ghx-body { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.ghx-text { margin: 0; color: var(--ghx-muted); }
+.ghx-summary { margin: 0; color: var(--ghx-fg); }
+
+.ghx-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ghx-chip {
+  padding: 0 7px;
+  border: 1px solid var(--ghx-border);
+  border-radius: 2em;
+  background: var(--ghx-subtle);
+  color: var(--ghx-fg);
+  font-size: 12px;
+  line-height: 18px;
+}
+.ghx-chip-primary { border-color: var(--ghx-accent); color: var(--ghx-accent); background: transparent; font-weight: 600; }
+
+.ghx-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.ghx-fact { padding: 6px 8px; border: 1px solid var(--ghx-border); border-radius: var(--ghx-radius); background: var(--ghx-subtle); }
+.ghx-fact span { display: block; font-size: 11px; color: var(--ghx-muted); }
+.ghx-fact b { font-size: 12px; font-weight: 600; }
+
+.ghx-pickbar { padding: 6px 8px; border: 1px solid var(--ghx-yellow-border); border-radius: var(--ghx-radius); background: var(--ghx-yellow-bg); color: var(--ghx-yellow); font-size: 12px; }
+.ghx-pickbar b { font-weight: 600; }
+.ghx-warn { margin: 0; padding: 6px 8px; border: 1px solid var(--ghx-yellow-border); border-radius: var(--ghx-radius); background: var(--ghx-yellow-bg); color: var(--ghx-fg); font-size: 12px; }
+.ghx-note { margin: 0; color: var(--ghx-muted); font-size: 12px; }
+.ghx-error { margin: 0; padding: 6px 8px; border: 1px solid var(--ghx-red-border); border-radius: var(--ghx-radius); background: var(--ghx-red-bg); color: var(--ghx-fg); font-size: 12px; overflow-wrap: anywhere; }
+.ghx-hint { display: block; margin-top: 4px; color: var(--ghx-muted); }
+.ghx-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ghx-divider { border-top: 1px solid var(--ghx-border); padding-top: 10px; }
+
+/* ───────── buttons ───────── */
+.ghx-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border: 1px solid var(--borderColor-default, var(--ghx-border));
+  border-radius: var(--ghx-radius);
+  background: var(--ghx-subtle);
+  color: var(--ghx-fg);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+.ghx-btn:hover:not(:disabled) { filter: brightness(0.96); }
+.ghx-btn:disabled { opacity: 0.6; cursor: default; }
+.ghx-btn:focus-visible, .ghx-analyze:focus-visible { outline: 2px solid var(--ghx-accent); outline-offset: 2px; }
+.ghx-btn-primary { border-color: rgba(31, 35, 40, 0.15); background: var(--bgColor-success-emphasis, #1f883d); color: #fff; }
+.ghx-btn-block { width: 100%; }
+.ghx-icon { padding: 0 8px; }
+
+.ghx-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ghx-border);
+  border-top-color: var(--ghx-accent);
+  border-radius: 50%;
+  animation: ghx-spin 0.8s linear infinite;
+  vertical-align: -2px;
+}
+.ghx-loading { display: flex; align-items: center; gap: 8px; color: var(--ghx-muted); }
+@keyframes ghx-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ghx-spinner { animation-duration: 3s; } }
+
+/* ───────── list rows ───────── */
+.ghx-rowchips { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; vertical-align: middle; }
+.ghx-analyze {
+  appearance: none;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px dashed var(--ghx-border);
+  border-radius: 2em;
+  background: transparent;
+  color: var(--ghx-muted);
+  font-size: 11px;
+  line-height: 18px;
+  cursor: pointer;
+}
+.ghx-analyze:hover { color: var(--ghx-accent); border-color: var(--ghx-accent); }
+.ghx-analyze.ghx-busy { cursor: progress; }
+.ghx-analyze.ghx-failed { color: var(--ghx-red); border-color: var(--ghx-red-border); border-style: solid; }
+
+/* ───────── implementation-guide dialog ───────── */
+.ghx-dialog {
+  width: min(720px, 92vw);
+  max-height: 85vh;
+  padding: 0;
+  border: 1px solid var(--ghx-border);
+  border-radius: 12px;
+  background: var(--ghx-bg);
+  color: var(--ghx-fg);
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: var(--shadow-floating-xlarge, 0 24px 48px rgba(31, 35, 40, 0.3));
+}
+.ghx-dialog::backdrop { background: rgba(27, 31, 36, 0.5); }
+.ghx-dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--ghx-border); background: var(--ghx-subtle); }
+.ghx-dlg-head h2 { display: inline; margin: 0 8px 0 0; font-size: 16px; font-weight: 600; }
+.ghx-dlg-body { max-height: calc(85vh - 56px); padding: 16px; overflow: auto; }
+.ghx-dlg-body > section + section { margin-top: 20px; }
+.ghx-dlg-body h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.ghx-dlg-body p { margin: 0 0 8px; }
+.ghx-dlg-body ul { margin: 0; padding-left: 20px; }
+.ghx-table { width: 100%; margin: 8px 0; border-collapse: collapse; font-size: 13px; }
+.ghx-table th, .ghx-table td { padding: 4px 8px; border: 1px solid var(--ghx-border); text-align: left; }
+.ghx-table th { width: 50%; font-weight: 500; color: var(--ghx-muted); background: var(--ghx-subtle); }
+.ghx-steps { margin: 0; padding: 0; list-style: none; counter-reset: ghx-step; }
+.ghx-steps li { position: relative; margin-bottom: 12px; padding: 0 0 0 36px; counter-increment: ghx-step; }
+.ghx-steps li::before {
+  content: counter(ghx-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--ghx-border);
+  border-radius: 50%;
+  background: var(--ghx-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+}
+.ghx-step-title { font-weight: 600; }
+.ghx-areas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.ghx-areas code { padding: 0 6px; border-radius: var(--ghx-radius); background: var(--ghx-subtle); font-size: 12px; }
+.ghx-foot { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--ghx-border); color: var(--ghx-muted); font-size: 12px; }

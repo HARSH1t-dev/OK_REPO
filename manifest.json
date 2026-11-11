@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "OSS Issue Scout",
+  "version": "0.4.0",
+  "description": "Find active, high-quality open-source issues for GSoC/LFX-style contributions.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://github.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
