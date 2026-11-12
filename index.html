@@ -50,9 +50,23 @@ dialog::backdrop{background:rgba(0,0,0,.5)}dialog label{margin-bottom:10px}
 <header><h1>🔭 Issue Scout</h1><button class="btn" id="open-set">Settings</button></header>
 <p class="sub">Active, substantial open-source issues, rated for true difficulty, with an implementation plan. Stale and trivial “good first issues” are filtered out.</p>
 
+<section class="card" id="orgs">
+ <h2 style="margin:0 0 4px;font-size:17px">Regular program orgs</h2>
+ <p class="mu" style="margin:0 0 10px">Estimates which orgs return year after year by scanning public GitHub issues labeled for GSoC, LFX Mentorship and Summer of Bitcoin. It’s a signal, not an official list. Confirm on the <a href="https://summerofcode.withgoogle.com/archive" target="_blank" rel="noopener">GSoC archive</a>, <a href="https://mentorship.lfx.linuxfoundation.org/" target="_blank" rel="noopener">LFX</a> and <a href="https://www.summerofbitcoin.org/" target="_blank" rel="noopener">Summer of Bitcoin</a>.</p>
+ <div class="acts">
+  <label class="row"><input type="checkbox" class="pg" value="gsoc" checked> GSoC</label>
+  <label class="row"><input type="checkbox" class="pg" value="lfx" checked> LFX</label>
+  <label class="row"><input type="checkbox" class="pg" value="sob" checked> Summer of Bitcoin</label>
+  <label class="row">Active in at least <input id="oy" type="number" min="1" max="6" value="5" style="width:56px"> of the last 6 years</label>
+  <button class="btn pri" id="oscan" type="button">Scan history</button>
+ </div>
+ <div id="omsg" class="mu" style="margin:8px 0"></div><div id="otable"></div>
+</section>
+
 <form id="f">
  <label>Languages (comma-separated)<input id="langs" placeholder="python, go"></label>
  <label>Labels (optional, any of)<input id="labels" placeholder="help wanted, enhancement"></label>
+ <label>Org or owner (optional)<input id="org" placeholder="e.g. rust-lang"></label>
  <label>Max days since update<input id="idle" type="number" min="1" value="45"></label>
  <label>Min repo stars<input id="stars" type="number" min="0" value="50"></label>
  <label>Min depth score (0–100)<input id="depth" type="number" min="0" max="100" value="35"></label>
@@ -80,7 +94,6 @@ dialog::backdrop{background:rgba(0,0,0,.5)}dialog label{margin-bottom:10px}
 'use strict';
 const $=s=>document.querySelector(s);
 const LS={get:k=>localStorage.getItem('is_'+k)||'',set:(k,v)=>v?localStorage.setItem('is_'+k,v):localStorage.removeItem('is_'+k)};
-const BUILT_IN={gemini:'AQ.Ab8RN6LPaSo0Fl_Bfjk32aPtYJzPdc2FGOW87jfMp0C562rzXQ'};
 const el=(t,p={},...k)=>{const e=document.createElement(t);for(const[a,v]of Object.entries(p)){if(v==null||v===false)continue;if(a==='class')e.className=v;else if(a.startsWith('on'))e.addEventListener(a.slice(2),v);else e.setAttribute(a,v===true?'':v)}for(const x of k.flat())if(x!=null&&x!==false)e.append(x);return e};
 const days=s=>(Date.now()-Date.parse(s))/864e5;
 const MAINT=['OWNER','MEMBER','COLLABORATOR'], PICK='maintainer-pick', EXCL=['duplicate','invalid','wontfix','question','stale'];
@@ -102,6 +115,7 @@ async function search(f){
   const base=['is:issue','is:open','is:public','archived:false','no:assignee','-linked:pr','updated:>='+since];
   if(f.cm)base.push('comments:>=1');
   if(f.picks)base.push('label:'+PICK);
+  if(f.org)base.push('org:'+f.org);
   if(f.labels.length)base.push('label:'+f.labels.map(q).join(','));
   const out=new Map();
   for(const l of f.langs.length?f.langs:[null]){
@@ -177,7 +191,7 @@ async function analyze(it){
   const user=`Analyze this GitHub issue and return the JSON object described in the system prompt.\n\n<issue_data>\nRepository: ${repo} (main language: ${info.language||'unknown'})\nIssue: #${i.number} ${clip(i.title,200)}\nLabels: ${i.labels.map(l=>clip(l.name,40)).join(', ')||'none'}\nOpened: ${i.created_at.slice(0,10)} | Comments: ${i.comments} | Maintainer replied: ${cm.some(M)?'yes':'no'}\n\n--- ISSUE BODY ---\n${clip(i.body,4500)||'(empty)'}\n\n--- DISCUSSION (selected comments, oldest first) ---\n${disc||'(no comments)'}\n</issue_data>`;
   const errs=[];
   for(const[p,fn]of[['gemini',callGemini],['groq',callGroq]]){
-    const key=LS.get(p)||BUILT_IN[p];if(!key)continue;
+    const key=LS.get(p);if(!key)continue;
     try{const a=validate(parse(await fn(key,user)));a.provider=p;a.at=Date.now();return a}catch(e){errs.push(p+': '+e.message)}
   }
   throw new Error(errs.length?'All providers failed. '+errs.join(' | '):'Add a Gemini or Groq API key in Settings first.');
@@ -234,7 +248,7 @@ function card(it){
 const FIELDS={langs:'langs',labels:'labels',idle:'idle',stars:'stars',depth:'depth',win:'win'};
 function readForm(){
   const csv=s=>s.split(',').map(x=>x.trim()).filter(Boolean);
-  return{langs:csv($('#langs').value),labels:csv($('#labels').value),idle:+$('#idle').value||45,stars:+$('#stars').value||0,depth:+$('#depth').value||0,win:+$('#win').value||90,cm:$('#cm').checked,picks:$('#picks').checked};
+  return{langs:csv($('#langs').value),labels:csv($('#labels').value),idle:+$('#idle').value||45,stars:+$('#stars').value||0,depth:+$('#depth').value||0,win:+$('#win').value||90,cm:$('#cm').checked,picks:$('#picks').checked,org:$('#org').value.trim()};
 }
 async function run(e){
   e?.preventDefault();
@@ -267,7 +281,44 @@ $('#save').onclick=()=>{for(const[k,s]of Object.entries(SET))LS.set(k,$(s).value
 $('#wipe').onclick=()=>{for(const k of Object.keys(SET))LS.set(k,'');for(const s of Object.values(SET))$(s).value=''};
 $('#close').onclick=()=>dlg.close();
 $('#f').addEventListener('submit',run);
-try{const s=JSON.parse(LS.get('filters')||'null');if(s){$('#langs').value=s.langs.join(', ');$('#labels').value=s.labels.join(', ');$('#idle').value=s.idle;$('#stars').value=s.stars;$('#depth').value=s.depth;$('#win').value=s.win;$('#cm').checked=s.cm;$('#picks').checked=s.picks}}catch{}
+try{const s=JSON.parse(LS.get('filters')||'null');if(s){$('#langs').value=s.langs.join(', ');$('#labels').value=s.labels.join(', ');$('#idle').value=s.idle;$('#stars').value=s.stars;$('#depth').value=s.depth;$('#win').value=s.win;$('#cm').checked=s.cm;$('#picks').checked=s.picks;$('#org').value=s.org||''}}catch{}
+
+/* ── regular program orgs: estimated from public GitHub issues per year (not an official list) ── */
+const PROG={gsoc:{n:'GSoC',q:'label:gsoc,"google summer of code"'},lfx:{n:'LFX',q:'label:lfx-mentorship,lfx,"lfx mentorship"'},sob:{n:'Summer of Bitcoin',q:'label:summer-of-bitcoin,"summer of bitcoin"'}};
+const NY=6,PAGES=3,MIN_ISSUES=2,sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const YEARS=()=>{const y=new Date().getFullYear();return Array.from({length:NY},(_,k)=>y-NY+1+k)};
+const oc=()=>{try{return JSON.parse(LS.get('oc')||'{}')}catch{return{}}};
+async function scanOrgs(){
+  const sel=[...document.querySelectorAll('.pg:checked')].map(c=>c.value),ys=YEARS(),cache=oc(),pause=LS.get('gh')?2200:6500;
+  $('#oscan').disabled=true;
+  try{
+    for(const p of sel)for(const y of ys){
+      const k=p+y,hit=cache[k];if(hit&&Date.now()-hit.at<6048e5)continue; // cached for 7 days
+      const counts={};
+      for(let pg=1;pg<=PAGES;pg++){
+        $('#omsg').textContent=`Scanning ${PROG[p].n} ${y} (page ${pg}/${PAGES})…`;
+        const d=await gh('/search/issues?'+new URLSearchParams({q:`is:issue created:${y}-01-01..${y}-12-31 ${PROG[p].q}`,sort:'created',order:'desc',per_page:'100',page:String(pg)}));
+        for(const i of d.items){const o=repoOf(i).split('/')[0];counts[o]=(counts[o]||0)+1}
+        await sleep(pause);if(d.items.length<100)break;
+      }
+      cache[k]={at:Date.now(),c:counts};LS.set('oc',JSON.stringify(cache));
+    }
+    showOrgs(sel,ys,cache);
+  }catch(e){$('#omsg').replaceChildren(el('span',{class:'err'},e.message+' Partial results are kept; scan again to continue.'))}
+  $('#oscan').disabled=false;
+}
+function showOrgs(sel,ys,cache){
+  const min=Math.min(+$('#oy').value||1,ys.length),rows=new Map();
+  for(const p of sel)for(const y of ys)for(const[o,n]of Object.entries(cache[p+y]?.c||{}))if(n>=MIN_ISSUES){const r=rows.get(o)||{o,p:{},t:0};(r.p[p]||=new Set()).add(y);r.t+=n;rows.set(o,r)}
+  const list=[...rows.values()].filter(r=>Object.values(r.p).some(s=>s.size>=min)).map(r=>({...r,sum:Object.values(r.p).reduce((a,s)=>a+s.size,0)})).sort((a,b)=>b.sum-a.sum||b.t-a.t).slice(0,50);
+  $('#omsg').textContent=list.length?`${list.length} orgs active in ≥${min} of the last ${ys.length} years in at least one selected program. Based on a sample of labeled issues, so small orgs can be missed.`:'No org met the threshold yet. Click Scan history, lower the minimum years, or add a GitHub token for a full scan.';
+  $('#otable').replaceChildren(...list.map(r=>el('div',{class:'card',style:'margin:8px 0;padding:10px'},
+    el('div',{class:'top'},el('b',{},r.o),el('a',{class:'mu',href:'https://github.com/'+r.o,target:'_blank',rel:'noopener'},'GitHub ↗'),el('button',{class:'btn',type:'button',onclick:()=>{$('#org').value=r.o;$('#f').scrollIntoView();run()}},'Find issues')),
+    el('div',{class:'chips'},Object.entries(r.p).map(([p,s])=>el('span',{class:'chip'+(s.size>=min?' lang':''),title:[...s].sort().join(', ')},`${PROG[p].n} ${s.size}/${ys.length}`))))));
+}
+$('#oscan').onclick=scanOrgs;
+$('#oy').onchange=()=>showOrgs([...document.querySelectorAll('.pg:checked')].map(c=>c.value),YEARS(),oc());
+if(Object.keys(oc()).length)showOrgs(['gsoc','lfx','sob'],YEARS(),oc());
 </script>
 </body>
 </html>
