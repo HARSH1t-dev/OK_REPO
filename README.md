@@ -2,7 +2,7 @@
 
 [https://harsh1t-dev.github.io/OK_REPO/](https://harsh1t-dev.github.io/OK_REPO/)
 
-# OK_REPO
+# ISSUE SCOUT
 
 An AI-powered browser extension that analyzes active GitHub issues to provide accurate difficulty tags and step-by-step contribution guides. 
 
