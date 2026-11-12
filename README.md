@@ -1,6 +1,6 @@
 ## LIVE LINK
 
-https://harsh1t-dev.github.io/OK_REPO/
+[https://harsh1t-dev.github.io/OK_REPO/](https://harsh1t-dev.github.io/OK_REPO/)
 
 # OK_REPO
 
